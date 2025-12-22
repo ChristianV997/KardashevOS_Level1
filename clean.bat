@@ -1,0 +1,3 @@
+@echo off
+REM Placeholder clean script for KardashevOS Level 1
+ECHO Cleaning KardashevOS Level 1 environment...

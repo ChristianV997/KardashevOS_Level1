@@ -1,0 +1,3 @@
+@echo off
+REM Placeholder stop script for KardashevOS Level 1
+ECHO Stopping KardashevOS Level 1...

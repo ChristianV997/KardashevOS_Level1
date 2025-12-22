@@ -1,0 +1,3 @@
+@echo off
+REM Placeholder start script for KardashevOS Level 1
+ECHO Starting KardashevOS Level 1...
