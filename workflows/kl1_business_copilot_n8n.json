@@ -1,0 +1,198 @@
+{
+  "name": "KL1 Business Copilot Money Loop",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [ -960, 260 ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            { "name": "baseUrl", "value": "http://127.0.0.1:8000" },
+            { "name": "leadTag", "value": "n8n_batch" },
+            { "name": "niche", "value": "home-services" },
+            { "name": "offerTier", "value": "A" },
+            { "name": "calendarLink", "value": "https://cal.com/your-agency/intro" }
+          ],
+          "string[]": [
+            { "name": "tags", "value": ["market_scout", "n8n"] }
+          ]
+        }
+      },
+      "id": "2",
+      "name": "Set Base Vars",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [ -760, 260 ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "leadCsv",
+              "value": "company,industry,email,signal\nBrightSmile Dental,dental,hello@brightsmile.test,Missed-call recovery requests\nFlowPlumb,home-services,owner@flowplumb.test,Needs booking automation\nGlowSpa,medspa,contact@glowspa.test,Appointment reminders\n"
+            }
+          ]
+        }
+      },
+      "id": "3",
+      "name": "Prep Lead CSV",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [ -560, 260 ]
+    },
+    {
+      "parameters": {
+        "url": "={{$node[\"Set Base Vars\"].json.baseUrl}}/api/v1/market_scout/ingest/csv",
+        "method": "POST",
+        "responseFormat": "json",
+        "options": {
+          "bodyContentType": "raw",
+          "rawContentType": "text/csv"
+        },
+        "queryParametersUi": {
+          "parameter": [
+            { "name": "item_type", "value": "lead" },
+            { "name": "source", "value": "n8n" },
+            { "name": "tags", "value": "={{$node[\"Set Base Vars\"].json.tags.join(',')}}" },
+            { "name": "auto_opps", "value": "true" },
+            { "name": "lead_tag", "value": "={{$node[\"Set Base Vars\"].json.leadTag}}" },
+            { "name": "group_field", "value": "industry" },
+            { "name": "min_group_size", "value": "2" }
+          ]
+        },
+        "body": "={{$node[\"Prep Lead CSV\"].json.leadCsv}}"
+      },
+      "id": "4",
+      "name": "Ingest Leads (CSV)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [ -340, 260 ]
+    },
+    {
+      "parameters": {
+        "url": "={{$node[\"Set Base Vars\"].json.baseUrl}}/api/v1/sieve/generate_from_leads",
+        "method": "POST",
+        "responseFormat": "json",
+        "options": {
+          "bodyContentType": "json"
+        },
+        "body": {
+          "lead_tag": "={{$node[\"Set Base Vars\"].json.leadTag}}",
+          "group_field": "industry",
+          "min_group_size": 2,
+          "source": "lead_sieve",
+          "base_tags": "={{$node[\"Set Base Vars\"].json.tags}}",
+          "default_offer_tier": "={{$node[\"Set Base Vars\"].json.offerTier}}"
+        }
+      },
+      "id": "5",
+      "name": "Generate Opportunities",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [ -100, 260 ]
+    },
+    {
+      "parameters": {
+        "url": "={{$node[\"Set Base Vars\"].json.baseUrl}}/api/v1/outbound/generate",
+        "method": "POST",
+        "responseFormat": "json",
+        "options": {
+          "bodyContentType": "json"
+        },
+        "body": {
+          "opportunity_id": "={{$json[\"created_opportunities\"][0].opportunity_item_id}}",
+          "lead_tag": "={{$node[\"Set Base Vars\"].json.leadTag}}",
+          "channel": "email",
+          "language": "en",
+          "sequence_steps": 3,
+          "variant": "v1",
+          "sender_name": "KL1 Ops",
+          "agency_name": "VimuttiOS Studio",
+          "calendar_link": "={{$node[\"Set Base Vars\"].json.calendarLink}}",
+          "personalization": "med",
+          "auto_create_experiment": true,
+          "store_as_research_item": true
+        }
+      },
+      "id": "6",
+      "name": "Generate Outbound",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [ 160, 260 ]
+    },
+    {
+      "parameters": {
+        "url": "={{$node[\"Set Base Vars\"].json.baseUrl}}/api/v1/outbound/campaigns/{{$json[\"campaign_id\"]}}/approve",
+        "method": "POST",
+        "responseFormat": "json"
+      },
+      "id": "7",
+      "name": "Approve Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [ 420, 260 ]
+    },
+    {
+      "parameters": {
+        "url": "={{$node[\"Set Base Vars\"].json.baseUrl}}/api/v1/outbound/campaigns/{{$node[\"Generate Outbound\"].json.campaign_id}}/log",
+        "method": "POST",
+        "responseFormat": "json",
+        "options": {
+          "bodyContentType": "json"
+        },
+        "body": {
+          "outreaches": 60,
+          "replies": 12,
+          "booked_calls": 4,
+          "closes": 2,
+          "revenue_usd": 8000,
+          "cost_usd": 500,
+          "mark_complete": true
+        }
+      },
+      "id": "8",
+      "name": "Log Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [ 680, 260 ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [ [ { "node": "Set Base Vars", "type": "main", "index": 0 } ] ]
+    },
+    "Set Base Vars": {
+      "main": [ [ { "node": "Prep Lead CSV", "type": "main", "index": 0 } ] ]
+    },
+    "Prep Lead CSV": {
+      "main": [ [ { "node": "Ingest Leads (CSV)", "type": "main", "index": 0 } ] ]
+    },
+    "Ingest Leads (CSV)": {
+      "main": [ [ { "node": "Generate Opportunities", "type": "main", "index": 0 } ] ]
+    },
+    "Generate Opportunities": {
+      "main": [ [ { "node": "Generate Outbound", "type": "main", "index": 0 } ] ]
+    },
+    "Generate Outbound": {
+      "main": [ [ { "node": "Approve Campaign", "type": "main", "index": 0 } ] ]
+    },
+    "Approve Campaign": {
+      "main": [ [ { "node": "Log Metrics", "type": "main", "index": 0 } ] ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": ["KL1", "Business Copilot", "Money Loop"],
+  "versionId": "kl1-bc-money-loop-v1"
+}

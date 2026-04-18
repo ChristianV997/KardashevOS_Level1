@@ -1,0 +1,52 @@
+# KL1 / VimuttiOS multi-agent mesh (conceptual config)
+
+agents:
+  equation_hunter:
+    role: "ToE / URIG / FHCM equation refinement and testing"
+    inputs: ["research_items", "cosmology_sims", "os_metrics"]
+    outputs: ["equation_patches", "prediction_registry_entries"]
+
+  research_scout:
+    role: "Hourly / daily scanning of AI/ML, physics, macro, neuro, substrates"
+    inputs: ["feeds", "apis", "papers"]
+    outputs: ["research_items"]
+
+  os_architect:
+    role: "Stack design, refactors, integration patches"
+    inputs: ["equation_patches", "os_metrics", "user_goals"]
+    outputs: ["os_patch_plans", "architecture_docs"]
+
+  coder_holon:
+    role: "Implements approved patches into the various stacks"
+    inputs: ["os_patch_plans", "repo_snapshots"]
+    outputs: ["pull_requests", "new_stack_versions"]
+
+  business_sieve_holon:
+    role: "Clusters raw market signals into themes and proposes Opportunities + experiments"
+    inputs: ["research_items (signals/leads)", "campaign_metrics"]
+    outputs: ["auto_opportunities", "experiment_backlog"]
+
+  growth_ops_holon:
+    role: "Turns Opportunities into outbound campaigns, tracks outcomes, and iterates weekly"
+    inputs: ["opportunity_rankings", "lead_lists", "experiment_results"]
+    outputs: ["outbound_campaigns", "weekly_scorecard", "next_actions"]
+
+  practice_guide:
+    role: "Maps KL1 / ToL insights into concrete meditative / life protocols"
+    inputs: ["tol_docs", "user_state", "neuro_metrics"]
+    outputs: ["session_plans", "temple_protocols"]
+
+  macro_scout:
+    role: "Follows global macro, markets, and substrate timelines"
+    inputs: ["macro_feeds", "etf_data", "science_news"]
+    outputs: ["macro_briefs", "opportunity_maps"]
+
+world_layers:
+  - name: "ResearchItem"
+    description: "Canonical atom for all external findings (papers, tweets, news, experiments)."
+  - name: "EquationBoard"
+    description: "Versioned registry of URIG/FHCM/ToE equations and variants with scores."
+  - name: "WorldLayer"
+    description: "Coarse-grained models of domains: cosmos, markets, projects, mind."
+  - name: "IdentityGraph"
+    description: "Graph of Christian's goals, constraints, projects, and commitments."
