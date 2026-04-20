@@ -1,4 +1,4 @@
-# KardashevOS Level 1
+# publisherOS
 
 This repository is the starting point for a future full-stack template. At the moment it only contains placeholder batch scripts and basic documentation. The Gateway API and modular services mentioned in earlier drafts have not yet been implemented.
 
